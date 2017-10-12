@@ -22,15 +22,34 @@ public class pro7 {
 		}
 
 		//System.out.println(ciphertext);
-
+		byte[] ciphertxt = Base64.getDecoder().decode(ciphertext);
+		
+		
 
 		SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes(), "AES");
 		Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
-
-		cipher.init(Cipher.DECRYPT_MODE, skeySpec);
-
-		byte[] plaintextbyte = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
-		String plaintext = new String(plaintextbyte);
+		String plaintext = "";
+		
+		byte[][] block = new byte[ciphertxt.length][16];
+		
+		
+		for(int i = 0; i<ciphertxt.length/16;i++) {
+			block[i] = Arrays.copyOfRange(ciphertxt,i*16 , i*16+16);
+			
+		}
+		
+		
+		//change it so it's not cheating :D
+		for(int i = 0; i<block.length;i++) {
+			cipher.init(Cipher.DECRYPT_MODE, skeySpec);
+			//System.out.println(Base64.getDecoder().decode(str[i]).length);
+			//System.out.println();
+			
+			//doing this block by block
+			byte[] plaintextbyte = cipher.doFinal(block[i]);
+			plaintext += new String(plaintextbyte);
+			skeySpec = new SecretKeySpec(key.getBytes(), "AES");
+		}
 		System.out.println(plaintext);
 	}
 
