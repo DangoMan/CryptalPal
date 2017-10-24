@@ -14,9 +14,9 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String str = "001100";
-		
-		System.out.println(str.getBytes()[0]);
+		byte [] bt1 = {'a','1'};
+		System.out.println(bt1[0]);
+		System.out.println(common.BCAES.XOR(bt1, bt1)[1]);
 
 	}
 

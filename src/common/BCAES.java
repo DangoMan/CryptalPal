@@ -39,4 +39,26 @@ public class BCAES {
 		
 		return new String(plaintextbyte);
 	}
+	
+	//doing one block at a time so it's not cheating ;)
+	public static byte[] aesblock(String key, byte[] block) throws Exception {
+		SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes(), "AES");
+		Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+		cipher.init(Cipher.DECRYPT_MODE, skeySpec);
+		//System.out.println(Base64.getDecoder().decode(str[i]).length);
+		//System.out.println();
+		
+		//doing this block by block
+		return cipher.doFinal(block);
+	}
+	
+	public static byte[] XOR(byte bt1[], byte bt2[]) {
+		byte[] returnbt = new byte[bt1.length];
+		
+		for(int i = 0; i< bt1.length;i++) {
+			returnbt[i] = (byte) (bt1[i]^bt2[i]);
+		}
+		
+		return returnbt;
+	}
 }
