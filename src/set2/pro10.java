@@ -21,7 +21,7 @@ public class pro10 {
 		}
 
 		//System.out.println(ciphertext);
-		byte[][] block = BCAES.Base64blockdecomp(ciphertext);
+		byte[][] block = BCAES.Base64blockdecomp( Base64.getDecoder().decode(ciphertext),16,0);
 		byte[] vect = new byte[16];
 		
 		for(int i = 0; i< 16; i++) {
@@ -30,9 +30,9 @@ public class pro10 {
 		
 		String plaintext = "";
 		
-		for(int i = 0; i<block.length-1;i++) {
+		for(int i = 0; i<block.length;i++) {
 			
-			byte[] plainblock = common.BCAES.aesblock(key, block[i]);
+			byte[] plainblock = common.BCAES.aesD(key.getBytes(), block[i]);
 			
 			String blocktext = new String(common.BCAES.XOR(plainblock, vect));
 			
@@ -40,6 +40,7 @@ public class pro10 {
 			
 			vect = block[i];
 		}
+		
 		System.out.println(plaintext);
 
 	}

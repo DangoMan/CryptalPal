@@ -50,7 +50,7 @@ public class pro7 {
 			plaintext += new String(plaintextbyte);
 			skeySpec = new SecretKeySpec(key.getBytes(), "AES");
 		}
-		//System.out.println(plaintext);
+		System.out.println(plaintext);
 	}
 
 }

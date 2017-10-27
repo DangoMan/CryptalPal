@@ -1,7 +1,7 @@
 package set1;
 import java.math.BigInteger;
 
-import set1.BinOp;
+import common.BinOp;
 
 public class pro1 {
 	public static void main(String args[]){

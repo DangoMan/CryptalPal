@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Scanner;
 
+import common.BinOp;
+
 public class pro5 {
 	public static void main (String args[]) throws FileNotFoundException{
 		Scanner sc = new Scanner(new FileReader("src/input.txt"));
