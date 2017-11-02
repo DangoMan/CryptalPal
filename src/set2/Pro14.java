@@ -1,49 +1,55 @@
 package set2;
 
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
 
 import common.BCAES;
 
-public class pro12 {
+public class Pro14 {
+	static byte [] randomprefix = {-107,35,-119,38,46,82,21,115,-121,-110,-52,82,-114,-122,-11,43,-43,57,12,0,108,89,-105,-29,-58,-2,56,89,106,4,-117,20,-99,-31};
+	static byte [] key = {-55,-122,84,-13,-94,80,-108,-25,44,-30,64,-67,-59,-85,-6,-113};
+	static byte [] cipherbyte = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK".getBytes();
 
-	static byte key[] = {-11,-118,-15,25,38,-92,-84,118,74,-12,91,-69,-63,91,72,-30};
 
-	public static byte[][] AES_128_ECB(byte[] headbyte, byte[] cipher) throws Exception{
+	public static byte[][] AES_128_ECB(byte[] headbyte) throws Exception{
 
 
 		//some idiot decide it would be a good idea not include append to the library (I could be wrong)
 
-		byte cipherbyte[] = new byte[headbyte.length+cipher.length];
+
+		byte cipherbt[] = new byte[randomprefix.length+headbyte.length+cipherbyte.length];
 
 		//Well, this bothers me
 		int i = 0;
-		for(;i<headbyte.length;i++) {
-			cipherbyte[i] = headbyte[i];
+		for(;i<randomprefix.length;i++) {
+			cipherbt[i] = randomprefix[i];
 		}
-		for(;i<headbyte.length+cipher.length;i++) {
-			cipherbyte[i] = cipher[i-headbyte.length];
+		for(;i<headbyte.length+randomprefix.length;i++) {
+			cipherbt[i] = headbyte[i-randomprefix.length];
+		}
+		for(;i<headbyte.length+cipherbyte.length+randomprefix.length;i++) {
+			cipherbt[i] = cipherbyte[i-headbyte.length-randomprefix.length];
 		}
 
-		return BCAES.aesECB(key, BCAES.Base64blockdecomp(cipherbyte,16,1), true);
-
-
+		return BCAES.aesECB(key, BCAES.Base64blockdecomp(cipherbt,16,1), true);
 	}
+
 	//step one, a bit slacky, but since my AES ONLY allows a single block of 128....
-	public static void blocksize(byte[] cipherbyte) throws Exception {
+	public static void blocksize() throws Exception {
 		byte pre[][];
 		byte cur[][];
 
-		pre = AES_128_ECB("".getBytes(),cipherbyte);
-		cur = AES_128_ECB("A".getBytes(),cipherbyte);
+		pre = AES_128_ECB("".getBytes());
+		cur = AES_128_ECB("A".getBytes());
 
 		String prefix1add = "A";
 		int countstep1 = 0;
 
 		while(cur.length - pre.length == 0) {
-			pre = AES_128_ECB(prefix1add.getBytes(),cipherbyte);
+			pre = AES_128_ECB(prefix1add.getBytes());
 			prefix1add +="A";
-			cur = AES_128_ECB(prefix1add.getBytes(),cipherbyte);
+			cur = AES_128_ECB(prefix1add.getBytes());
 			countstep1 ++;
 		}
 
@@ -62,19 +68,27 @@ public class pro12 {
 			}
 		}
 		return counter; 
+	}
+
+	//checking consecutive blocks
+	public static int checkconc(byte[][] codeblock) {
+		int counter = 0;
+
+		for(int i =0; i< codeblock.length-1;i++) {
+			if (Arrays.equals(codeblock[i],codeblock[i+1])) {
+				return i;
+			}
+		}
+		return -1; 
 
 	}
 
 	public static void main(String args[]) throws Exception {
-		String str = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK";
-		//no see ;)
-
-		//think I like this name better
-		byte cipherbyte [] = Base64.getDecoder().decode(str);
-
 		//blocksize(cipherbyte);
-		//currently 9 16 byte blocks, and it takes 6 extra bytes to "push it to the next block"
+		//currently 14 16 byte blocks, and it takes 6 extra bytes to "push it to the next block"
 
+
+		//skipping the CBC check
 		//step2 yeah, "totally" CBC
 		//		//append 33 bytes infront
 		//		String appstr = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" + str;
@@ -95,13 +109,37 @@ public class pro12 {
 		//		}
 		//		
 		//yeah no it't ECB
+
+		//checking where the cipher block is and where to prepend 
+		byte cur[][];
+
+		String prefix1add = "AAAAAAAAAAAAAAAA";
+		cur = AES_128_ECB(prefix1add.getBytes());
+
+		int sameloc = checkconc(cur);
+
+		//
+		while(sameloc == -1) {
+			prefix1add+="A";
+			cur = AES_128_ECB(prefix1add.getBytes());
+
+			sameloc = checkconc(cur);
+		}
+		//yeah I am being lazy since prefix or subfix might contain conce block
+		//Just have a code block to see what change does the same thing
+		System.out.println(prefix1add.length());
+		System.out.println(sameloc);
+		//46 to create a double block = 30 to create a single = pad 14 character to the thing
+		//block 3 is where it starts
 		
-		//Was cheating, now fixed, cause I am no cheater ;)
+		
 		//this is out of lazyness, since java dynamic array can take another hour that is not worth it 
+		//TODO add the padbefore to every AES call
 		byte[] solution = new byte[cipherbyte.length];
 
 		int pad = 15;
-		int padloc = 0;
+		int padloc = 4;
+		String padbefore = "AAAAAAAAAAAAAA";
 
 		byte dicblock[] = new byte[16];
 		for(int i = 0; i< 15;i++) {
@@ -126,7 +164,7 @@ public class pro12 {
 
 			//creating an existing dictionary
 			for(int i = Byte.MIN_VALUE; i<Byte.MAX_VALUE;i++) {
-				ECBcodes[i+128] = AES_128_ECB(dicblock, cipherbyte)[0];
+				ECBcodes[i+128] = AES_128_ECB(dicblock)[0];
 				dicblock[15] ++;
 			}
 
@@ -162,3 +200,4 @@ public class pro12 {
 		System.out.println(new String(Base64.getDecoder().decode(str)));
 	}
 }
+

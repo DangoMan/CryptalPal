@@ -14,7 +14,7 @@ public class BCAES {
 
 
 	//0 = no padding
-	//1 = 0 padding to the end
+	//1 = PK7
 	public static byte[][] Base64blockdecomp(byte[] ciphertxt,int size,int PADTYPE){ 
 		//byte[] ciphertxt = Base64.getDecoder().decode(ciphertext);
 		byte[][] block = null;
@@ -41,8 +41,9 @@ public class BCAES {
 				block[block.length-1][i] = ciphertxt[(block.length-1)*size + i ];
 
 			}
+			
 			for(; i< size;i++) {
-				block[block.length-1][i] = 0; 
+				block[block.length-1][i] = (byte) (size - ciphertxt.length%size); 
 			}
 
 		}
