@@ -9,7 +9,7 @@ import common.BCAES;
 public class Pro14 {
 	static byte [] randomprefix = {-107,35,-119,38,46,82,21,115,-121,-110,-52,82,-114,-122,-11,43,-43,57,12,0,108,89,-105,-29,-58,-2,56,89,106,4,-117,20,-99,-31};
 	static byte [] key = {-55,-122,84,-13,-94,80,-108,-25,44,-30,64,-67,-59,-85,-6,-113};
-	static byte [] cipherbyte = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK".getBytes();
+	static byte [] cipherbyte = Base64.getDecoder().decode("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK");
 
 
 	public static byte[][] AES_128_ECB(byte[] headbyte) throws Exception{
@@ -127,8 +127,8 @@ public class Pro14 {
 		}
 		//yeah I am being lazy since prefix or subfix might contain conce block
 		//Just have a code block to see what change does the same thing
-		System.out.println(prefix1add.length());
-		System.out.println(sameloc);
+		//System.out.println(prefix1add.length());
+		//System.out.println(sameloc);
 		//46 to create a double block = 30 to create a single = pad 14 character to the thing
 		//block 3 is where it starts
 		
@@ -138,16 +138,17 @@ public class Pro14 {
 		byte[] solution = new byte[cipherbyte.length];
 
 		int pad = 15;
-		int padloc = 4;
+		int padloc = 3;
 		String padbefore = "AAAAAAAAAAAAAA";
+		byte[] padbeforeb = padbefore.getBytes();
 
 		byte dicblock[] = new byte[16];
 		for(int i = 0; i< 15;i++) {
 			dicblock[i] = 0;
 		}
+		
 
-
-		//first block
+		//lazyness...
 		for(int j = 0; j<cipherbyte.length;j++) {
 			byte dicblockbase[] = new byte[pad];
 
@@ -161,15 +162,15 @@ public class Pro14 {
 			byte ECBcodes [][] = new byte[256][16];
 			dicblock[15] = Byte.MIN_VALUE;
 
-
 			//creating an existing dictionary
 			for(int i = Byte.MIN_VALUE; i<Byte.MAX_VALUE;i++) {
-				ECBcodes[i+128] = AES_128_ECB(dicblock)[0];
+				ECBcodes[i+128] = AES_128_ECB(BCAES.appendArr(padbeforeb,dicblock))[3];
+				//System.out.println(new String(ECBcodes[i+128]));
 				dicblock[15] ++;
 			}
 
 
-			byte[][] bt = AES_128_ECB(dicblockbase,cipherbyte);
+			byte[][] bt = AES_128_ECB(BCAES.appendArr(padbeforeb, dicblockbase));
 
 			for(int i = Byte.MIN_VALUE; i< Byte.MAX_VALUE;i++) {
 				if(Arrays.equals(bt[padloc], ECBcodes[i+128])) {
@@ -187,17 +188,19 @@ public class Pro14 {
 			dicblock[14] = solution[j];
 			
 			//reset pad length
+
+			
+			//System.out.println(new String(dicblock) + " " + pad + " " + padloc);
 			pad --;
 			if (pad == -1) {
 				pad = 15;
 				padloc++;
 			}
-
 		}
 		System.out.println(new String(solution));
 
 		//THIS WORKS :D
-		System.out.println(new String(Base64.getDecoder().decode(str)));
+		System.out.println(new String(cipherbyte));
 	}
 }
 

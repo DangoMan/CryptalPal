@@ -11,7 +11,18 @@ import javax.crypto.spec.SecretKeySpec;
 //as with most side projects, structure goes to hell 
 public class BCAES {
 
-
+	public static byte [] appendArr ( byte array1[] , byte array2[]){
+		
+		byte[] returnarr= new byte[array1.length+array2.length];
+		int i = 0; 
+		for(;i<array1.length;i++) {
+			returnarr[i] = array1[i];
+		}
+		for(;i<returnarr.length;i++) {
+			returnarr[i] = array2[i-array1.length];
+		}
+		return returnarr;
+	}
 
 	//0 = no padding
 	//1 = PK7
@@ -49,6 +60,31 @@ public class BCAES {
 		}
 
 		return block;
+	}
+	
+	public static byte[][] RemovePk7pad(byte input[][]) throws Exception{
+		int padlength = input.length;
+		int padsize = input[0].length;
+		int PK7length = input[input.length-1][input[0].length-1];
+		
+		if(PK7length >=padsize) {
+			throw new Exception("invaild PK7 pading");
+		}
+		
+		for(int i =padsize-1; i>padsize-1-padlength;i--) {
+			if(input[padlength-1][i] != padlength) {
+				throw new Exception("invaild PK7 pading");
+			}
+		}
+		
+		byte temp[] = input[padlength-1];
+		
+		input[padlength-1] = new byte[PK7length];
+		for (int i  = 0; i<padlength;i++) {
+			input[padlength-1][i] = temp[i];
+		}
+		
+		return input;
 	}
 
 
@@ -141,4 +177,6 @@ public class BCAES {
 
 		return returnbt;
 	}
+
+
 }
