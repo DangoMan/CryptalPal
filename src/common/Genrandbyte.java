@@ -7,7 +7,7 @@ import java.security.SecureRandom;
 public class Genrandbyte {
 	public static void main(String args[]) throws NoSuchAlgorithmException {
 		
-		int prefixlength = (int)( Math.random() * 100);
+		int prefixlength = 16;
 		
 		byte[] key = new byte[prefixlength] ;
 		SecureRandom.getInstanceStrong().nextBytes(key);

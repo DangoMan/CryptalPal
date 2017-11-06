@@ -12,7 +12,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class BCAES {
 
 	public static byte [] appendArr ( byte array1[] , byte array2[]){
-		
+
 		byte[] returnarr= new byte[array1.length+array2.length];
 		int i = 0; 
 		for(;i<array1.length;i++) {
@@ -29,13 +29,7 @@ public class BCAES {
 	public static byte[][] Base64blockdecomp(byte[] ciphertxt,int size,int PADTYPE){ 
 		//byte[] ciphertxt = Base64.getDecoder().decode(ciphertext);
 		byte[][] block = null;
-		if(ciphertxt.length%size == 0) {
-			block = new byte[ciphertxt.length/size][size];
-		}
-		else {
-			block = new byte[ciphertxt.length/size+1][size];
-		}
-
+		block = new byte[ciphertxt.length/size+1][size];
 
 
 		for(int i = 0; i<ciphertxt.length/size;i++) {
@@ -52,39 +46,60 @@ public class BCAES {
 				block[block.length-1][i] = ciphertxt[(block.length-1)*size + i ];
 
 			}
-			
+
 			for(; i< size;i++) {
 				block[block.length-1][i] = (byte) (size - ciphertxt.length%size); 
 			}
 
 		}
+		
+		//16 byte block
+		else if(PADTYPE == 1 ) {
+			for(int i = 0;i<size;i++ ) {
+				block[block.length-1][i] = (byte) size;
+
+			}
+		}
 
 		return block;
 	}
-	
-	public static byte[][] RemovePk7pad(byte input[][]) throws Exception{
+
+	public static byte[] RemovePk7pad(byte input[][]) throws Exception{
 		int padlength = input.length;
 		int padsize = input[0].length;
 		int PK7length = input[input.length-1][input[0].length-1];
-		
-		if(PK7length >=padsize) {
-			throw new Exception("invaild PK7 pading");
+
+
+		if(PK7length > padsize) {
+			throw new Exception("invaild PK7 pading, pading too long");
 		}
-		
-		for(int i =padsize-1; i>padsize-1-padlength;i--) {
-			if(input[padlength-1][i] != padlength) {
+
+		for(int i = padsize-1; i>padsize-1-PK7length;i--) {
+			if(input[padlength-1][i] != PK7length) {
 				throw new Exception("invaild PK7 pading");
 			}
 		}
-		
+
 		byte temp[] = input[padlength-1];
-		
+
 		input[padlength-1] = new byte[PK7length];
 		for (int i  = 0; i<padlength;i++) {
 			input[padlength-1][i] = temp[i];
 		}
-		
-		return input;
+
+		byte returnarr[] = new byte[(padlength)*(padsize) -PK7length ];
+
+		for(int i = 0; i< padlength-1;i++) {
+			for(int j = 0;j<padsize;j++) {
+				returnarr[i*padsize + j] = input[i][j];
+			}
+		}
+
+		for(int i = 0; i< padlength-PK7length;i++) {
+			returnarr[(padlength-1)*(padsize)+i] =  input[(padlength-1)][i];
+		}
+
+		return returnarr;
 	}
 
 
