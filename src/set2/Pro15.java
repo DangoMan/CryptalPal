@@ -1,8 +1,10 @@
 package set2;
 
+import java.util.Arrays;
+
 public class Pro15 {
 	public static void main ( String args[]) throws Exception {
-		byte[] test1 = "AAAAAAAAAAAAAAAAA".getBytes();
+		byte[] test1 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".getBytes();
 		System.out.println(test1.length);
 		byte[][] testarraylst = common.BCAES.Base64blockdecomp(test1, 16, 1);
 		
@@ -10,6 +12,6 @@ public class Pro15 {
 		
 		byte [] sol = common.BCAES.RemovePk7pad(testarraylst);
 		
-		System.out.println(sol.length);
+		System.out.println(Arrays.toString(sol));
 	}
 }

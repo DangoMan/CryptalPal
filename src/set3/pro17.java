@@ -25,15 +25,17 @@ public class pro17 {
 		plainlist[8] = Base64.getDecoder().decode("MDAwMDA4b2xsaW4nIGluIG15IGZpdmUgcG9pbnQgb2g=");
 		plainlist[9] = Base64.getDecoder().decode("MDAwMDA5aXRoIG15IHJhZy10b3AgZG93biBzbyBteSBoYWlyIGNhbiBibG93");
 
-		int index = (int)Math.random() * 10;
+		int index = 0;
 
-		System.out.println( new String(plainlist[index]));
-
+		System.out.println( index);
+		System.out.println( Arrays.toString(BCAES.Base64blockdecomp(plainlist[index], 16, 1)[2]));
 		return BCAES.aesCBC(key, BCAES.Base64blockdecomp(plainlist[index], 16, 1), iv, true);
+		
 	}
 
 	public static boolean vaildpad(byte[][] ciphertxt,byte[] iv) throws Exception {
 		byte decipherbyte[][] = BCAES.aesCBC(key, ciphertxt, iv, false);
+		//System.out.println(Arrays.toString(decipherbyte[0]));
 		try {
 			BCAES.RemovePk7pad(decipherbyte);
 		}
@@ -45,7 +47,7 @@ public class pro17 {
 		return true; 
 
 	}
-	
+
 	public static void main(String args[]) throws Exception {
 		byte[][] ciphertext = encrypt();
 
@@ -79,7 +81,7 @@ public class pro17 {
 		byte solution[][] = new byte[ciphertext.length][16];
 
 		//decrypting each block 
-		for(int i = 0;i< ciphertext.length;i++) {
+		for(int i = 0;i< ciphertext.length-1;i++) {
 
 			//keep track of the solution
 			byte[] solutionbt = new byte[16];
@@ -89,30 +91,70 @@ public class pro17 {
 
 
 			byte[][] twoblock = new byte[1][16];
-			byte[] ivs = new byte[16];
-
-			ivs = encryptarr[i];
+			byte[] ivs = encryptarr[i];
 			twoblock[0] = encryptarr[i+1];
 
 			//deciphering the next byte
 			for(int j = 0; j< 16; j++) {
 				N: for(int k = 0; k<256;k++) {
 					//OCD to make this work is a bad idea
-					if(!(i == ciphertext.length-1 && (Arrays.equals(solutionbt, baseblockpad[j])))) {
-						byte[] ivsch= BCAES.XOR(ivs, BCAES.XOR(solutionbt ,baseblockpad[j])); 
-						if(vaildpad(twoblock, ivsch)) {
-							break N;
-						}
+					byte[] ivsch= BCAES.XOR(ivs, BCAES.XOR(solutionbt ,baseblockpad[j])); 
+					if(vaildpad(twoblock, ivsch)) {
+						break N;
 					}
+
 					solutionbt[15-j] ++;
 				}
 			}
 
 			solution[i] = solutionbt;
-			
-			System.out.println(Arrays.toString(solutionbt));
-
 		}
+
+
+
+		//last byte
+		byte[][] twoblock = new byte[1][16];
+		byte[] ivs = encryptarr[ciphertext.length-1];
+		twoblock[0] = encryptarr[ciphertext.length];
+		byte sol [] = new byte[16];
+		int pos = 0; 
+
+		//checking the padded block 
+		//There is a few edge case i can think of (i.e the 2 block XOR into a vaild padding), but other wise this works
+		N: for(int i = 15;i>=0;i--) {
+			//checking the final bite, ensure the block won't cancel with itself, so do 2 just to make sure
+			byte[] ivsch= BCAES.XOR(ivs, BCAES.XOR(baseblockpad[i],baseblockpad[15-i])); 
+			byte[] ivsch2= BCAES.XOR(ivs, BCAES.XOR(baseblockpad[i],baseblockpad[((i-1)+16)%16])); 
+			byte[] ivsch3= BCAES.XOR(ivs, BCAES.XOR(baseblockpad[i],baseblockpad[((i-2)+16)%16])); 			if(vaildpad(twoblock, ivsch)&&vaildpad(twoblock, ivsch2)&&vaildpad(twoblock, ivsch3)) {
+				sol = Arrays.copyOf(baseblockpad[i], 16);
+				pos = i;
+				break N;
+			}
+		}
+		
+		EMER: for(int j = pos; j< 16; j++) {
+			N: for(int k = 0; k<256;k++) {
+				byte[] ivsch= BCAES.XOR(ivs, BCAES.XOR(sol ,baseblockpad[j])); 
+				
+				
+				if(vaildpad(twoblock, ivsch)) {
+					break N;
+				}
+
+				sol[15-j] ++;
+				
+				if(k == 255) {
+					System.out.println("error");
+					break EMER;
+				}
+			}
+		}
+		
+		solution[solution.length-1] = sol;
+		byte [] solutionarr = BCAES.RemovePk7pad(solution);
+		System.out.println(Arrays.toString(Arrays.copyOf(solutionarr, 33)));
+
+		System.out.println(new String(Arrays.copyOf(solutionarr, 35)));
 
 	}
 
