@@ -5,8 +5,7 @@ import java.util.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-
-
+import Jama.*;
 //let's be honest, the BinOp class you write a year ago was a piece of shit, yeah
 //as with most side projects, structure goes to hell 
 public class BCAES {
@@ -46,12 +45,12 @@ public class BCAES {
 
 			if(ciphertxt.length%size != 0) {
 				//system.out.println((block.length)*(size-1) + "\n");
-				
+
 				block[block.length-1] = Arrays.copyOfRange(ciphertxt,(block.length-1)*(size), ciphertxt.length);
 			}
-			
+
 		}
-		
+
 		if(PADTYPE == 1) {
 
 			block = new byte[ciphertxt.length/size+1][size];
@@ -59,7 +58,7 @@ public class BCAES {
 			for(int i = 0; i<ciphertxt.length/size;i++) {
 				block[i] = Arrays.copyOfRange(ciphertxt,i*size , (i+1)*size);
 			}
-			
+
 			int i = 0;
 			for(;i<ciphertxt.length%size;i++ ) {
 				block[block.length-1][i] = ciphertxt[(block.length-1)*size + i ];
@@ -71,7 +70,7 @@ public class BCAES {
 			}
 
 		}
-		
+
 		//16 byte block
 		else if(PADTYPE == 1 ) {
 			for(int i = 0;i<size;i++ ) {
@@ -107,7 +106,7 @@ public class BCAES {
 				returnarr[i*padsize + j] = input[i][j];
 			}
 		}
-		
+
 		for(int i = 0; i< padsize-PK7length;i++) {
 			//System.out.println(returnarr.length+" "+(padlength-1)*(padsize)+i);
 			returnarr[(padlength-1)*(padsize)+i] =  input[(padlength-1)][i];
@@ -196,24 +195,24 @@ public class BCAES {
 		return sol;
 
 	}
-	
+
 	//key: usual
 	//nonce: 8 byte nonce, 
 	//length is assume to be a mult of 128 byte
 	public static byte[][] aesCTR(byte[] key, byte[] nonce, byte[][] block) throws Exception{
 		byte sol[][] = new byte[block.length][block[0].length];
-		
+
 		//trying to limit the amount of append
 		int nonceloc = nonce.length;
 		int blockln = block[0].length;
-		
+
 		if(nonceloc >= blockln) {
 			throw new Exception("Nonce is too long ");
 		}
-		
+
 		//note the extra length is offset 
 		byte[] noncebyte = Arrays.copyOf(nonce, blockln); 
-		
+
 		for (int i = 0; i< block.length;i++) {
 
 			//System.out.println(Arrays.toString(noncebyte));
@@ -221,48 +220,24 @@ public class BCAES {
 			sol[i] = XOR(block[i],aesE(key,noncebyte));
 			//System.out.println(Arrays.toString(block[i]));
 			//System.out.println(Arrays.toString(sol[i]));
-			
+
 			//System.out.println(new String(sol[i]));
 			//add one to the noncebyte block
 			N: for(int j = nonceloc; j<blockln;j++) {
-				
-				//if a overflow happen
-				if(noncebyte[j] == -128) {
-					noncebyte[j] = 0;
-				}
-				
-				//else wise exit
-				else {
-					noncebyte[j] = bpp(noncebyte[j]);
 
-					//System.out.println(bpp(noncebyte[j]));
-					//System.out.println(bpp(noncebyte[j]));
-					break N;
-				}
+
+				noncebyte[j]++;
+
+				//System.out.println(bpp(noncebyte[j]));
+				//System.out.println(bpp(noncebyte[j]));
+				break N;
+
 			}
 		}
-		
+
 		return sol;
 	}
-	
-	
-	//"overload operation for byte ++ (since 01111111 ++ -> 10000000) (127++ = -1)"
-	//bytewise ++?
-	public static byte bpp(byte bt) {
-		if(bt == 127) {
-			
-			return -1;
-		}
-		if(bt == -128) {
-			return 0;
-		}
-		
-		if (bt < 0) {
-			return --bt ;
-		}
-		
-		else return ++bt;
-	}
+
 
 
 	public static byte[] XOR(byte bt1[], byte bt2[]) {
