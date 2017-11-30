@@ -34,7 +34,7 @@ public class Mersenne_Twister_19937 {
 		y = y^y>>>18;
 		index ++;
 
-		return lsd32(y);
+		return  lsd32(y);
 	}
 
 	private void twist() {
